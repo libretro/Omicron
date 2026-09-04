@@ -32,12 +32,18 @@ endif
 
 TARGET_NAME = omicron
 
+# JNI headers. Detected from javac in $PATH; override JAVA_HOME to build
+# against a specific JDK (required when cross compiling).
+ifeq ($(JAVA_HOME),)
+   JAVA_HOME := $(shell readlink -f "$$(command -v javac)" 2>/dev/null | sed 's:/bin/javac$$::')
+endif
+
 ifeq ($(platform), unix)
    TARGET := $(TARGET_NAME)_libretro.so
    fpic := -fPIC
    SHARED := -shared -Wl,--version-script=link.T -Wl,--no-undefined
    GL_LIB := -lGL
-   CFLAGS += -I"/usr/lib/jvm/java-1.11.0-openjdk-amd64/include/" -I"/usr/lib/jvm/java-1.11.0-openjdk-amd64/include/linux/" 
+   CFLAGS += -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/linux"
    LIBS += -ldl
 else ifneq (,$(findstring osx,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.dylib
@@ -122,7 +128,7 @@ else
    TARGET := $(TARGET_NAME)_libretro.dll
    SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T -Wl,--no-undefined
    GL_LIB := -lopengl32
-   CFLAGS += -I.. -I"C:/Program Files/AdoptOpenJDK/jdk-13.0.1.9-hotspot/include" -I"C:/Program Files/AdoptOpenJDK/jdk-13.0.1.9-hotspot/include/win32"
+   CFLAGS += -I.. -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/win32"
 endif
 
 ifeq ($(DEBUG), 1)
